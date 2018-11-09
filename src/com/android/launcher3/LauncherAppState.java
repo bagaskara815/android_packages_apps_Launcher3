@@ -21,6 +21,7 @@ import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Looper;
 import android.util.Log;
 
@@ -52,6 +53,8 @@ public class LauncherAppState {
     private final InvariantDeviceProfile mInvariantDeviceProfile;
     private final SettingsObserver mNotificationBadgingObserver;
 
+    private boolean mIsSearchAppAvailable;
+
     public static LauncherAppState getInstance(final Context context) {
         if (INSTANCE == null) {
             if (Looper.myLooper() == Looper.getMainLooper()) {
@@ -81,6 +84,8 @@ public class LauncherAppState {
     }
 
     private LauncherAppState(Context context) {
+	boolean IsSearchAppInstalled = false;
+
         if (getLocalProvider(context) == null) {
             throw new RuntimeException(
                     "Initializing LauncherAppState in the absence of LauncherProvider");
@@ -88,6 +93,9 @@ public class LauncherAppState {
         Log.v(Launcher.TAG, "LauncherAppState initiated");
         Preconditions.assertUIThread();
         mContext = context;
+
+	IsSearchAppInstalled = isAppInstalled(context, LauncherTab.SEARCH_PACKAGE);
+        setSearchAppAvailable(IsSearchAppInstalled);
 
         mInvariantDeviceProfile = new InvariantDeviceProfile(mContext);
         mIconCache = new IconCache(mContext, mInvariantDeviceProfile);
@@ -178,6 +186,24 @@ public class LauncherAppState {
         try (ContentProviderClient cl = context.getContentResolver()
                 .acquireContentProviderClient(LauncherProvider.AUTHORITY)) {
             return (LauncherProvider) cl.getLocalContentProvider();
+        }
+    }
+
+    public void setSearchAppAvailable(boolean available) {
+        mIsSearchAppAvailable = available;
+    }
+
+    public boolean isSearchAppAvailable() {
+        return mIsSearchAppAvailable;
+    }
+
+    public boolean isAppInstalled(Context context, String appUri) {
+        try {
+            PackageManager pm = context.getPackageManager();
+            pm.getPackageInfo(appUri, PackageManager.GET_ACTIVITIES);
+            return true;
+        } catch (Exception e) {
+            return false;
         }
     }
 }
