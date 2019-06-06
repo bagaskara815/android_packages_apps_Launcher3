@@ -135,7 +135,7 @@ public class Homescreen extends SettingsActivity implements PreferenceFragment.O
 
             showSearchBar.setOnPreferenceChangeListener(new OnPreferenceChangeListener() {
                 public boolean onPreferenceChange(Preference preference, Object newValue) {
-                    LauncherAppState.getInstanceNoCreate().setNeedsRestart();
+                    SettingsActivity.restartNeeded = true;
                     return true;
                 }
             });
